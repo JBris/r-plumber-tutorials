@@ -1,0 +1,35 @@
+services:
+  app1:
+    build: ./app1/
+    volumes:
+     - ./data:/data
+     - ./app1:/app
+    restart: always
+    ports:
+     - "7000:8000"
+  app2:
+    image: rstudio/plumber
+    command: /app/plumber.R
+    volumes:
+     - ../app2:/app
+    restart: always
+    ports:
+     - "7001:8000"
+     
+  nginx:
+    image: nginx:1.9
+    ports:
+     - "80:80"
+    volumes:
+     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: always
+    depends_on:
+     - app1
+     - app2
+     
+  lb:
+    image: 'dockercloud/haproxy:1.2.1'
+    links:
+     - app1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
